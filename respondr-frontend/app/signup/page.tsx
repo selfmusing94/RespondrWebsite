@@ -1,151 +1,123 @@
-"use client"
+'use client';
 
-import type React from "react"
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/app/layout';
+import { signup } from '@/lib/api';
+import { useToast } from '@/components/ui/use-toast';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { AnimatedSection } from "@/components/animated-section"
+const signupSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  role: z.enum(['Public', 'Responder'], { message: 'Please select a role' }),
+});
+
+type SignupForm = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const { register, handleSubmit, formState: { errors } } = useForm<SignupForm>({
+    resolver: zodResolver(signupSchema),
+  });
+  const { login: authLogin } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
-    }
-
-    setIsLoading(true)
-
-    // Simulate signup - in a real app, this would be an API call
+  const onSubmit = async (data: SignupForm) => {
     try {
-      // Mock successful signup
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/dashboard")
-    } catch (err) {
-      setError("Failed to create account. Please try again.")
-    } finally {
-      setIsLoading(false)
+      const response = await signup(data);
+      authLogin(response.token, response.role, response.userId);
+      toast({
+        title: 'Success',
+        description: 'Account created successfully!',
+      });
+      router.push('/dashboard');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create account',
+        variant: 'destructive',
+      });
     }
-  }
+  };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-red-50 p-4">
-      <AnimatedSection>
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader className="space-y-1">
-            <div className="flex justify-center mb-4">
-              <Link href="/" className="text-2xl font-bold text-red-600 flex items-center gap-2">
-                <div className="relative h-8 w-8 overflow-hidden rounded-full bg-red-600">
-                  <div className="absolute inset-0 flex items-center justify-center text-white font-bold">R</div>
-                </div>
-                Respondr
-              </Link>
-            </div>
-            <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-            <CardDescription className="text-center">Sign up to help save lives during emergencies</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className="transition-all duration-200 focus:ring-red-500 focus:border-red-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="transition-all duration-200 focus:ring-red-500 focus:border-red-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                  className="transition-all duration-200 focus:ring-red-500 focus:border-red-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="transition-all duration-200 focus:ring-red-500 focus:border-red-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="transition-all duration-200 focus:ring-red-500 focus:border-red-500"
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-red-600 hover:bg-red-700 transition-all duration-300 hover:scale-[1.02]"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating account..." : "Sign Up"}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <div className="text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/login" className="text-red-600 hover:underline">
-                Login
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
-      </AnimatedSection>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md md:max-w-2xl p-8 bg-white rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Sign Up for Respondr</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="name" className="text-sm font-medium text-gray-700">Name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Enter your name"
+              className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              {...register('name')}
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              {...register('email')}
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              {...register('password')}
+            />
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="role" className="text-sm font-medium text-gray-700">Role</Label>
+            <select
+              id="role"
+              className="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              {...register('role')}
+            >
+              <option value="">Select a role</option>
+              <option value="Public">Public</option>
+              <option value="Responder">Responder</option>
+            </select>
+            {errors.role && (
+              <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition-colors"
+          >
+            Sign Up
+          </Button>
+        </form>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <a href="/login" className="text-blue-600 hover:underline">Log in</a>
+        </p>
+      </div>
     </div>
-  )
+  );
 }
