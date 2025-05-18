@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
     const token = jwt.sign(
-      { user_id: user.user_id, role: user.role }, // Use user_id to match DB
+      { user_id: user.user_id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
@@ -45,21 +45,38 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/signup', async (req, res) => {
-  const { name, email, password, role, phone_number, address } = req.body;
-  console.log('Signup request:', { name, email, password, role, phone_number, address });
+  const { name, email, password, phone_number } = req.body;
+  console.log('Signup request:', { name, email, password, phone_number });
   try {
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: 'Name, email, password, and role are required' });
+    if (!name || !email || !password || !phone_number) {
+      return res.status(400).json({ message: 'Name, email, password, and phone number are required' });
     }
+
+    let role;
+    if (email.endsWith('@gmail.com')) {
+      role = 'Public';
+    } else if (email.endsWith('@gov.in')) {
+      role = 'Driver';
+    } else if (email === 'admin@respondr.in') {
+      role = 'Admin';
+    } else {
+      return res.status(400).json({ message: 'Invalid email domain. Use @gmail.com, @gov.in, or admin@respondr.in' });
+    }
+
     const [existing] = await db.promise().query('SELECT * FROM users WHERE email = ?', [email]);
     if (existing.length > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
+
+    if (email.endsWith('@respondr.in') && email !== 'admin@respondr.in') {
+      return res.status(400).json({ message: 'Only admin@respondr.in is allowed for @respondr.in domain' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log('Hashed password:', hashedPassword);
     const [result] = await db.promise().query(
-      'INSERT INTO users (name, email, password_hash, role, phone_number, address) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, email, hashedPassword, role, phone_number || null, address || null]
+      'INSERT INTO users (name, email, password_hash, role, phone_number, proof_uploaded) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, email, hashedPassword, role, phone_number, role === 'Public' ? false : false]
     );
     const token = jwt.sign(
       { user_id: result.insertId, role },

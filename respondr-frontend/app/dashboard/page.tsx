@@ -10,7 +10,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { SOSButton } from '@/components/sos-button';
 import { useToast } from '@/hooks/use-toast';
 import { MapView } from '@/components/map-view';
-import { useAuth } from '../layout';
+import { useAuth } from '@/lib/auth-context';
 import { getPendingReports, handleAssignment } from '@/lib/api';
 import { connectSocket, onNewReport, sendLocationUpdate, disconnectSocket } from '@/lib/socket';
 import { PendingReport, ReportNotification } from '@/lib/types';
@@ -24,12 +24,11 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState<ReportNotification[]>([]);
   const router = useRouter();
   const { toast } = useToast();
-  const { token, role, userId, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (!token || !role || !userId) {
-      router.push('/login');
-      return;
+    if (!isAuthenticated || !user) {
+      return; // Layout handles redirect
     }
 
     // Get user's location
@@ -46,8 +45,8 @@ export default function DashboardPage() {
             title: 'Location Detected',
             description: 'Your current location has been successfully detected.',
           });
-          if (role === 'Responder') {
-            sendLocationUpdate(userId, position.coords.latitude, position.coords.longitude);
+          if (user.role === 'Responder') {
+            sendLocationUpdate(user.userId, position.coords.latitude, position.coords.longitude);
           }
         },
         (error) => {
@@ -63,14 +62,14 @@ export default function DashboardPage() {
       );
 
       // Watch position for Responders
-      if (role === 'Responder') {
+      if (user.role === 'Responder') {
         const watchId = navigator.geolocation.watchPosition(
           (position) => {
             setLocation({
               lat: position.coords.latitude,
               lng: position.coords.longitude,
             });
-            sendLocationUpdate(userId, position.coords.latitude, position.coords.longitude);
+            sendLocationUpdate(user.userId, position.coords.latitude, position.coords.longitude);
           },
           (error) => {
             console.error('Error watching location:', error);
@@ -82,8 +81,8 @@ export default function DashboardPage() {
     }
 
     // Fetch pending reports and set up socket for Responders
-    if (role === 'Responder' && token) {
-      const socket = connectSocket(token);
+    if (user.role === 'Responder') {
+      const socket = connectSocket(localStorage.getItem('token')!);
       onNewReport((report) => {
         setNotifications((prev) => [...prev, report]);
         toast({
@@ -117,7 +116,7 @@ export default function DashboardPage() {
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [toast, router, token, role, userId]);
+  }, [toast, router, user, isAuthenticated]);
 
   const handleSOS = () => {
     router.push('/report-incident');
@@ -144,40 +143,13 @@ export default function DashboardPage() {
     }
   };
 
-  if (!token || !role || !userId) return null;
+  if (!user) return null;
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-gray-50">
         <AppSidebar />
         <div className="flex-1">
-          <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-white/90 backdrop-blur-md px-6 shadow-sm">
-            <SidebarTrigger />
-            <div className="flex items-center gap-2">
-              <div className="relative h-8 w-8 rounded-full bg-red-600">
-                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">R</div>
-              </div>
-              <h1 className="text-xl font-bold text-red-600">Respondr Dashboard</h1>
-            </div>
-            <div className="ml-auto flex items-center gap-4">
-              {location && (
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="mr-1 h-4 w-4 text-red-600" />
-                  <span className="hidden md:inline">
-                    {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                  </span>
-                </div>
-              )}
-              <Button
-                onClick={logout}
-                variant="outline"
-                className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-all duration-200"
-              >
-                Logout
-              </Button>
-            </div>
-          </header>
-
           <main className="p-6 max-w-7xl mx-auto">
             <AnimatedSection>
               {showWelcome && (
@@ -190,7 +162,7 @@ export default function DashboardPage() {
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">Welcome to Respondr</h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          {role === 'Public'
+                          {user.role === 'Public'
                             ? 'Report emergencies or book ambulances with ease.'
                             : 'Monitor and respond to emergency reports in real-time.'}
                         </p>
@@ -200,7 +172,7 @@ export default function DashboardPage() {
                 </Card>
               )}
 
-              {role === 'Public' ? (
+              {user.role === 'Public' ? (
                 <div className="grid gap-6 md:grid-cols-2">
                   <Card className="overflow-hidden shadow-lg rounded-2xl border-0 hover:shadow-xl transition-shadow duration-300">
                     <CardContent className="p-0">

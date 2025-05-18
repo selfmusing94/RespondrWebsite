@@ -1,62 +1,59 @@
 import axios, { AxiosInstance } from 'axios';
-import {
-  LoginRequest,
-  LoginResponse,
-  SignupRequest,
-  SignupResponse,
-  ReportRequest,
-  ReportResponse,
-  AssignmentAction,
-  AssignmentResponse,
-  PendingReport,
-} from './types';
+import { PendingReport } from '@/lib/types';
+
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+interface SignupRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone_number: string;
+}
+
+interface AuthResponse {
+  token: string;
+  userId: number;
+  role: string;
+}
 
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-export const setAuthToken = (token: string | null) => {
+export function setAuthToken(token: string | null) {
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     delete api.defaults.headers.common['Authorization'];
   }
-};
+}
 
-export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-  const response = await api.post<LoginResponse>('/api/auth/login', data);
+export const login = async (data: LoginRequest): Promise<AuthResponse> => {
+  console.log('Calling login API:', data);
+  const response = await api.post<AuthResponse>('/api/auth/login', data);
   return response.data;
 };
 
-export const signup = async (data: SignupRequest): Promise<SignupResponse> => {
-  const response = await api.post<SignupResponse>('/api/auth/signup', data);
-  return response.data;
-};
-
-export const createReport = async (data: ReportRequest): Promise<ReportResponse> => {
-  const formData = new FormData();
-  formData.append('type', data.type);
-  formData.append('latitude', data.latitude.toString());
-  formData.append('longitude', data.longitude.toString());
-  if (data.description) formData.append('description', data.description);
-  if (data.destination) formData.append('destination', data.destination);
-  if (data.photo) formData.append('photo', data.photo);
-
-  const response = await api.post<ReportResponse>('/api/report/create', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return response.data;
-};
-
-export const handleAssignment = async (
-  assignmentId: number,
-  data: AssignmentAction,
-): Promise<AssignmentResponse> => {
-  const response = await api.post<AssignmentResponse>(`/api/driver/assignment/${assignmentId}`, data);
+export const signup = async (data: SignupRequest): Promise<AuthResponse> => {
+  console.log('Calling signup API:', data);
+  const response = await api.post<AuthResponse>('/api/auth/signup', data);
   return response.data;
 };
 
 export const getPendingReports = async (): Promise<PendingReport[]> => {
-  const response = await api.get<PendingReport[]>('/api/driver/pending');
+  const response = await api.get('/api/reports/pending');
   return response.data;
 };
+
+export const handleAssignment = async (assignmentId: number, action: { action: 'accept' | 'cancel' }) => {
+  const response = await api.post(`/api/assignments/${assignmentId}`, action);
+  return response.data;
+};
+
+export default api;
