@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatedSection } from '@/components/animated-section';
 import { createReport } from '@/lib/api';
-import { useAuth } from '../layout';
+import { useAuth } from '@/lib/auth-context';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function BookAmbulancePage() {

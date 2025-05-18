@@ -1,10 +1,24 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Home, Clock, MapPin, Phone } from "lucide-react"
+import { CheckCircle, Home, Clock, MapPin, Phone, Navigation } from "lucide-react"
 import Link from "next/link"
 import { AnimatedSection } from "@/components/animated-section"
+import { useToast } from "@/hooks/use-toast"
 
 export default function BookingSuccessPage() {
+  const { toast } = useToast()
+
+  const handleTrackAmbulance = () => {
+    // In a real app, this would redirect to Google Maps with the driver's location
+    // For now, we'll just show a toast message
+    toast({
+      title: "Driver Arrived",
+      description: "Your ambulance driver has arrived at your location.",
+    })
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
       <AnimatedSection>
@@ -75,7 +89,14 @@ export default function BookingSuccessPage() {
               <p className="text-xl font-bold text-red-600 mt-2 text-center">108</p>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-3">
+            <Button
+              onClick={handleTrackAmbulance}
+              className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center"
+            >
+              <Navigation className="mr-2 h-4 w-4" /> Track Ambulance
+            </Button>
+
             <Link href="/dashboard" className="w-full">
               <Button className="w-full bg-red-600 hover:bg-red-700 transition-all duration-300 hover:scale-[1.02]">
                 <Home className="mr-2 h-4 w-4" /> Return to Dashboard

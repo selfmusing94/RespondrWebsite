@@ -1,6 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
 import { PendingReport } from '@/lib/types';
 
+const API_BASE_URL = 'http://localhost:3001/api';
+
 interface LoginRequest {
   email: string;
   password: string;
@@ -45,6 +47,8 @@ export const signup = async (data: SignupRequest): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>('/api/auth/signup', data);
   return response.data;
 };
+
+
 
 export const getPendingReports = async (): Promise<PendingReport[]> => {
   const response = await api.get('/api/driver/pending');

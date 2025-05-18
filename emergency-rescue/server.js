@@ -3,11 +3,14 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
+
 
 const app = express();
 
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
+
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -27,6 +30,9 @@ db.connect((err) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/driver', require('./routes/driver'));
 app.use('/api/reports', require('./routes/report'));
+app.use('/api/user', userRoutes);
+
+
 
 app.listen(process.env.PORT || 3001, () => {
   console.log(`Server running on port ${process.env.PORT || 3001}`);

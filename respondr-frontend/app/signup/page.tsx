@@ -9,12 +9,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, Eye, EyeOff, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"; // imported
 import { signup } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 
 export default function SignupPage() {
+  const router = useRouter(); // <----- Initialize router here
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -99,7 +101,7 @@ export default function SignupPage() {
         variant="outline"
         size="sm"
         className="absolute left-4 top-4 flex items-center gap-1 text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all"
-        onClick={() => router.push("/")}
+        onClick={() => router.push("/")} // router is now defined
       >
         <X className="h-4 w-4" />
         <span>Cancel</span>
