@@ -47,13 +47,42 @@ export const signup = async (data: SignupRequest): Promise<AuthResponse> => {
 };
 
 export const getPendingReports = async (): Promise<PendingReport[]> => {
-  const response = await api.get('/api/reports/pending');
+  const response = await api.get('/api/driver/pending');
   return response.data;
 };
 
 export const handleAssignment = async (assignmentId: number, action: { action: 'accept' | 'cancel' }) => {
-  const response = await api.post(`/api/assignments/${assignmentId}`, action);
+  const response = await api.post(`/api/driver/assignment/${assignmentId}`, action);
   return response.data;
 };
+
+export async function createReport(data: {
+  type: string;
+  latitude: number;
+  longitude: number;
+  description?: string;
+  photo: File;
+}) {
+  const formData = new FormData();
+  formData.append('type', data.type);
+  formData.append('latitude', data.latitude.toString());
+  formData.append('longitude', data.longitude.toString());
+  if (data.description) formData.append('description', data.description);
+  formData.append('photo', data.photo);
+
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData?.error || 'Failed to create report');
+  }
+
+  return response.json();
+}
+
+
 
 export default api;

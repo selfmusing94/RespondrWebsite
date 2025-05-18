@@ -3,25 +3,28 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, MapPin, Send, X, ArrowLeft } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { MapPin, Send, X, ArrowLeft, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatedSection } from '@/components/animated-section';
 import { createReport } from '@/lib/api';
-import { useAuth } from '../layout';
+import { useAuth } from '@/lib/auth-context'; // or wherever your auth-context file is located
 
 export default function ReportIncidentPage() {
-  const [cameraActive, setCameraActive] = useState(false);
-  const [photoTaken, setPhotoTaken] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const router = useRouter();
   const { toast } = useToast();
   const { token } = useAuth();
@@ -56,68 +59,28 @@ export default function ReportIncidentPage() {
         { enableHighAccuracy: true }
       );
     }
-
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
   }, [toast, router, token]);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setCameraActive(true);
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
+    if (file.type !== 'image/png') {
       toast({
         variant: 'destructive',
-        title: 'Camera Error',
-        description: 'Unable to access your camera. Please check permissions.',
+        title: 'Invalid File Type',
+        description: 'Only PNG files are allowed.',
       });
+      return;
     }
+
+    setPhotoFile(file);
+    setPhotoURL(URL.createObjectURL(file));
   };
 
-  const takePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-
-      if (context) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], `incident-${Date.now()}.jpeg`, { type: 'image/jpeg' });
-            setPhotoFile(file);
-            setPhotoURL(URL.createObjectURL(file));
-            setPhotoTaken(true);
-
-            // Stop camera stream
-            const stream = video.srcObject as MediaStream;
-            stream.getTracks().forEach((track) => track.stop());
-            setCameraActive(false);
-          }
-        }, 'image/jpeg');
-      }
-    }
-  };
-
-  const retakePhoto = () => {
-    setPhotoTaken(false);
+  const removePhoto = () => {
     setPhotoFile(null);
     setPhotoURL(null);
-    startCamera();
   };
 
   const handleSubmit = async () => {
@@ -125,7 +88,7 @@ export default function ReportIncidentPage() {
       toast({
         variant: 'destructive',
         title: 'Photo Required',
-        description: 'Please take a photo of the incident.',
+        description: 'Please upload a PNG photo of the incident.',
       });
       return;
     }
@@ -183,57 +146,49 @@ export default function ReportIncidentPage() {
           <Card className="shadow-2xl rounded-2xl border-0 overflow-hidden">
             <CardHeader className="bg-red-600 text-white p-6">
               <CardTitle className="text-xl font-bold">Report Emergency</CardTitle>
-              <CardDescription className="text-red-100">Capture and report an incident instantly</CardDescription>
+              <CardDescription className="text-red-100">
+                Upload a PNG photo and report an incident instantly
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               {error && (
-                <Alert variant="destructive" className="animate-fade-in">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+                <div className="text-red-700 bg-red-100 p-2 rounded mb-4">{error}</div>
               )}
-              {!cameraActive && !photoTaken ? (
-                <div className="flex flex-col items-center justify-center space-y-4 p-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-                  <Camera className="h-12 w-12 text-red-600" />
-                  <p className="text-center text-gray-600">Take a photo to help emergency services</p>
-                  <Button
-                    onClick={startCamera}
-                    className="bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-300 hover:scale-105"
-                  >
-                    Open Camera
-                  </Button>
-                </div>
+
+              {!photoURL ? (
+                <label
+                  htmlFor="file-upload"
+                  className="flex flex-col items-center justify-center space-y-4 p-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 cursor-pointer hover:border-red-600 transition"
+                >
+                  <Upload className="h-12 w-12 text-red-600" />
+                  <p className="text-center text-gray-600">Upload a PNG photo to help emergency services</p>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".png"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
               ) : (
                 <div className="relative">
-                  {cameraActive && !photoTaken && (
-                    <>
-                      <video ref={videoRef} autoPlay playsInline className="w-full h-auto rounded-lg shadow-lg" />
-                      <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-                        <Button
-                          onClick={takePhoto}
-                          className="rounded-full w-16 h-16 bg-red-600 hover:bg-red-700 shadow-lg transition-all duration-300 hover:scale-110 animate-pulse"
-                        >
-                          <Camera className="h-8 w-8" />
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                  {photoTaken && photoURL && (
-                    <div className="relative">
-                      <img src={photoURL} alt="Incident" className="w-full h-auto rounded-lg shadow-lg" />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="absolute top-3 right-3 bg-white/90 hover:bg-gray-100 rounded-full shadow transition-all duration-300"
-                        onClick={retakePhoto}
-                      >
-                        <X className="h-5 w-5 text-gray-700" />
-                      </Button>
-                    </div>
-                  )}
-                  <canvas ref={canvasRef} className="hidden" />
+                  <img
+                    src={photoURL}
+                    alt="Incident"
+                    className="w-full h-auto rounded-lg shadow-lg"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute top-3 right-3 bg-white/90 hover:bg-gray-100 rounded-full shadow transition-all duration-300"
+                    onClick={removePhoto}
+                    aria-label="Remove uploaded photo"
+                  >
+                    <X className="h-5 w-5 text-gray-700" />
+                  </Button>
                 </div>
               )}
+
               {location && (
                 <div className="flex items-center p-4 bg-gray-100 rounded-lg shadow-sm">
                   <MapPin className="h-6 w-6 text-red-600 mr-3 flex-shrink-0" />
@@ -245,8 +200,14 @@ export default function ReportIncidentPage() {
                   </div>
                 </div>
               )}
+
               <div className="space-y-2">
-                <label htmlFor="description" className="text-sm font-medium text-gray-900">Incident Description (Optional)</label>
+                <label
+                  htmlFor="description"
+                  className="text-sm font-medium text-gray-900"
+                >
+                  Incident Description (Optional)
+                </label>
                 <Textarea
                   id="description"
                   placeholder="Describe what happened..."
@@ -260,7 +221,7 @@ export default function ReportIncidentPage() {
               <Button
                 onClick={handleSubmit}
                 className="w-full h-12 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
-                disabled={!photoTaken || isSubmitting}
+                disabled={!photoFile || isSubmitting}
               >
                 {isSubmitting ? (
                   <div className="flex items-center">

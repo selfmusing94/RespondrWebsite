@@ -9,9 +9,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, Eye, EyeOff, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"; // Correct import
 import { login } from "@/lib/api";
-import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 
 export default function LoginPage() {
@@ -22,9 +21,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login: authLogin } = useAuth();
 
+  // Get the router instance here
+  const router = useRouter();
+
   const validateEmail = (email: string) => {
     if (!email) return "Email is required";
-    if (!email.endsWith("@gmail.com") && !email.endsWith("@gov.in") && !email.endsWith("@respondr.in")) {
+    if (
+      !email.endsWith("@gmail.com") &&
+      !email.endsWith("@gov.in") &&
+      !email.endsWith("@respondr.in")
+    ) {
       return "Email must end with @gmail.com, @gov.in, or @respondr.in";
     }
     return "";
@@ -33,9 +39,12 @@ export default function LoginPage() {
   const validatePassword = (password: string) => {
     if (!password) return "Password is required";
     if (password.length < 6) return "Password must be at least 6 characters";
-    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
-    if (!/[0-9]/.test(password)) return "Password must contain at least one number";
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "Password must contain at least one special character";
+    if (!/[A-Z]/.test(password))
+      return "Password must contain at least one uppercase letter";
+    if (!/[0-9]/.test(password))
+      return "Password must contain at least one number";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+      return "Password must contain at least one special character";
     return "";
   };
 
@@ -54,13 +63,21 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      console.log('Login form submitted:', { email, password });
+      console.log("Login form submitted:", { email, password });
       const response = await login({ email, password });
-      console.log('Login response:', response);
+      console.log("Login response:", response);
+
+      // Save auth info in context
       authLogin(response.token, response.userId, response.role);
+
+      // Redirect after successful login - e.g., to dashboard
+      router.push("/dashboard");
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.message || "Invalid email or password. Please try again.");
+      console.error("Login error:", err);
+      setError(
+        err.response?.data?.message ||
+          "Invalid email or password. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +89,7 @@ export default function LoginPage() {
         variant="outline"
         size="sm"
         className="absolute left-4 top-4 flex items-center gap-1 text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all"
-        onClick={() => router.push("/")}
+        onClick={() => router.push("/")} // now router is defined
       >
         <X className="h-4 w-4" />
         <span>Cancel</span>
@@ -82,20 +99,26 @@ export default function LoginPage() {
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <div className="relative h-12 w-12 overflow-hidden rounded-full bg-red-600 shadow-md">
-              <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-2xl">R</div>
+              <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-2xl">
+                R
+              </div>
             </div>
           </Link>
         </div>
 
         <Card className="w-full shadow-xl border-0 overflow-hidden bg-white/80 backdrop-blur-sm">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl font-bold text-center text-gray-800">Welcome back</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center text-gray-800">
+              Welcome back
+            </CardTitle>
             <CardDescription className="text-center text-gray-600">
               Enter your credentials to access your account
             </CardDescription>
             <p className="text-sm text-gray-600">
-              Use <span className="font-medium text-red-600">@gov.in</span> email for Driver account or{" "}
-              <span className="font-medium text-red-600">@respondr.in</span> for Admin account
+              Use <span className="font-medium text-red-600">@gov.in</span>{" "}
+              email for Driver account or{" "}
+              <span className="font-medium text-red-600">@respondr.in</span> for
+              Admin account
             </p>
           </CardHeader>
 
@@ -128,7 +151,10 @@ export default function LoginPage() {
                   <Label htmlFor="password" className="text-gray-700">
                     Password
                   </Label>
-                  <Link href="/forgot-password" className="text-sm text-red-600 hover:text-red-800 hover:underline">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-red-600 hover:text-red-800 hover:underline"
+                  >
                     Forgot password?
                   </Link>
                 </div>
@@ -145,8 +171,13 @@ export default function LoginPage() {
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                    {showPassword ? (
+                      <Eye className="h-5 w-5" />
+                    ) : (
+                      <EyeOff className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -171,7 +202,10 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col space-y-4 pt-2 pb-6 border-t border-gray-100">
             <div className="text-center text-sm text-gray-600">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-red-600 font-medium hover:text-red-800 hover:underline">
+              <Link
+                href="/signup"
+                className="text-red-600 font-medium hover:text-red-800 hover:underline"
+              >
                 Sign up
               </Link>
             </div>

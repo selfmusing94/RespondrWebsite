@@ -24,7 +24,9 @@ db.connect((err) => {
   console.log('DB Connected');
 });
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/driver', require('./routes/driver'));
+app.use('/api/reports', require('./routes/report'));
 
 app.listen(process.env.PORT || 3001, () => {
   console.log(`Server running on port ${process.env.PORT || 3001}`);

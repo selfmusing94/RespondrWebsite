@@ -7,6 +7,7 @@ import { setAuthToken } from "@/lib/api";
 
 interface AuthContextType {
   user: { userId: number; role: string } | null;
+  token: string | null;
   isAuthenticated: boolean;
   login: (token: string, userId: number, role: string) => void;
   logout: () => void;
@@ -16,22 +17,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<{ userId: number; role: string } | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
+        const payload = JSON.parse(atob(storedToken.split(".")[1]));
         setUser({ userId: payload.user_id, role: payload.role });
+        setToken(storedToken);
         setIsAuthenticated(true);
-        setAuthToken(token);
+        setAuthToken(storedToken);
       } catch (err) {
         console.error("Invalid token:", err);
         localStorage.removeItem("token");
-        setIsAuthenticated(false);
         setUser(null);
+        setToken(null);
+        setIsAuthenticated(false);
       }
     }
   }, []);
@@ -40,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("token", token);
     setAuthToken(token);
     setUser({ userId, role });
+    setToken(token);
     setIsAuthenticated(true);
     toast.success("Logged in successfully!");
     router.push("/dashboard");
@@ -49,13 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("token");
     setAuthToken(null);
     setUser(null);
+    setToken(null);
     setIsAuthenticated(false);
     toast.success("Logged out successfully!");
     router.push("/");
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

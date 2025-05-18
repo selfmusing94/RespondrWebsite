@@ -1,3 +1,4 @@
+// components/client-layout.tsx
 "use client";
 
 import { AuthProvider } from "@/lib/auth-context";

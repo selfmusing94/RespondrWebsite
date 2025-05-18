@@ -1,3 +1,4 @@
+// app/dashboard/layout.tsx
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -21,9 +22,7 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated, router]);
 
-  if (!isAuthenticated) {
-    return null; // Prevent flash of content
-  }
+  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
