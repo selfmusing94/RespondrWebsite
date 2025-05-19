@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@netlify/next": "^1.4.9",
     "multer": "^1.4.5-lts.2"
   }
 }
