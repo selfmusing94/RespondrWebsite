@@ -61,10 +61,10 @@ export default function AboutPage() {
                   className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
                 />
                 <h3 className="text-xl font-semibold mb-1">Darshan AB</h3>
-                <p className="text-red-600 font-medium mb-2">Founder & AI Specialist</p>
+                <p className="text-red-600 font-medium mb-2">Founder</p>
                 <p className="text-gray-600 mb-4">
                   Second year AIML student with a passion for applying machine learning to healthcare problems.
-                  Specializes in predictive analytics and real-time data processing.
+                  Specializes in using AI to develop new innovative solutions
                 </p>
                 <div className="flex justify-center space-x-3">
                 <a href="https://www.linkedin.com/in/darshan-ab-/" target="_blank" rel="noopener noreferrer">
@@ -83,10 +83,9 @@ export default function AboutPage() {
                   className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
                 />
                 <h3 className="text-xl font-semibold mb-1">Gaurav Nayak K</h3>
-                <p className="text-red-600 font-medium mb-2">Co-Founder & ML Engineer</p>
+                <p className="text-red-600 font-medium mb-2">Co-Founder</p>
                 <p className="text-gray-600 mb-4">
-                  Second year AIML student focused on mobile application development and geospatial data analysis.
-                  Passionate about creating intuitive interfaces for complex systems.
+                  Second year AIML student focused on mobile application and frontend development 
                 </p>
                 <div className="flex justify-center space-x-3">
                    <a href="https://gauravnayakk.netlify.app" target="_blank" rel="noopener noreferrer">
