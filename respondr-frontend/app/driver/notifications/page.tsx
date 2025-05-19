@@ -7,7 +7,7 @@ import { RoleSidebar } from "@/components/role-sidebar"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { useToast } from "@/hooks/use-toast"
 import { Bell, CheckCircle, X, Info } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/lib/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 

@@ -25,15 +25,18 @@ router.post(
     let photoUrl = null;
 
     try {
+      // Handle SOS photo upload
       if (type === 'SOS') {
         if (!req.files?.photo) return res.status(400).json({ error: 'Photo required for SOS' });
+
         const photo = req.files.photo;
-        if (photo.mimetype !== 'image/jpeg' && photo.mimetype !== 'image/png') {
+        if (!['image/jpeg', 'image/png'].includes(photo.mimetype)) {
           return res.status(400).json({ error: 'Only JPEG/PNG allowed' });
         }
         if (photo.size > 5 * 1024 * 1024) {
           return res.status(400).json({ error: 'File too large' });
         }
+
         const fileName = `${Date.now()}_${photo.name}`;
         const filePath = path.join(__dirname, '../uploads', fileName);
         await photo.mv(filePath);
@@ -42,6 +45,7 @@ router.post(
         return res.status(400).json({ error: 'Destination required for Booking' });
       }
 
+      // Insert the report
       const [result] = await pool.query(
         `INSERT INTO reports (user_id, type, latitude, longitude, photo_url, description, destination, status)
          VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')`,
@@ -50,12 +54,38 @@ router.post(
 
       const reportId = result.insertId;
 
-      await assignToNearestDriver(reportId, { latitude, longitude, type, photoUrl, description });
+      try {
+        // Try to assign ambulance
+        const assigned = await assignToNearestDriver(reportId, {
+          latitude,
+          longitude,
+          type,
+          photoUrl,
+          description
+        });
 
-      res.status(201).json({ message: 'Report created', reportId });
+        if (!assigned) {
+          // No ambulance found – return conflict
+          return res.status(409).json({ error: 'No available ambulances at the moment' });
+        }
+
+        // All good
+        res.status(201).json({ message: 'Report created and assigned', reportId });
+
+      } catch (assignErr) {
+        // If assignToNearestDriver throws specific error
+        if (assignErr.message === 'No available ambulances') {
+          return res.status(409).json({ error: assignErr.message });
+        }
+
+        // Unknown error during assignment
+        console.error('Assignment error:', assignErr);
+        return res.status(500).json({ error: 'Error assigning ambulance', details: assignErr.message });
+      }
+
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Server error' });
+      console.error("Create report failed:", error);
+      res.status(500).json({ error: "Server error", details: error.message });
     }
   }
 );

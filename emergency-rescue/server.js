@@ -5,12 +5,14 @@ const mysql = require('mysql2');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const fileUpload = require('express-fileupload');
+const reportRouter = require('./routes/report');
 
 
 const app = express();
 
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
+app.use(fileUpload());
 
 
 const db = mysql.createConnection({
@@ -32,6 +34,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/driver', require('./routes/driver'));
 app.use('/api/reports', require('./routes/report'));
 app.use('/api/user', userRoutes);
+app.use('/api/report', reportRouter);
 app.use(fileUpload());
 
 

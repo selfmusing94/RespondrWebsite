@@ -58,35 +58,61 @@ export const handleAssignment = async (assignmentId: number, action: { action: '
   return response.data;
 };
 
+
 // lib/api.ts
 export async function createReport(data: {
   type: 'SOS' | 'Booking';
   latitude: number;
   longitude: number;
   description?: string;
-  photo: File;
+  photo?: File;
 }) {
-  const formData = new FormData();
-  formData.append('type', data.type);
-  formData.append('latitude', String(data.latitude));
-  formData.append('longitude', String(data.longitude));
-  if (data.description) {
-    formData.append('description', data.description);
-  }
-  formData.append('photo', data.photo);
+  const isSOS = data.type === 'SOS';
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/report/create`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')!}`,
-    },
-    body: formData,
-  });
+  let res: Response;
 
-  if (!res.ok) {
-    const errData = await res.json();
-    throw new Error(errData.error || 'Failed to send report');
+  if (isSOS) {
+    const formData = new FormData();
+    formData.append('type', data.type);
+    formData.append('latitude', String(data.latitude));
+    formData.append('longitude', String(data.longitude));
+    if (data.description) formData.append('description', data.description);
+    if (data.photo) formData.append('photo', data.photo);
+
+    res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report/create`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')!}`,
+        // DO NOT SET Content-Type for FormData
+      },
+      body: formData,
+    });
+  } else {
+    res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/report/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')!}`,
+      },
+      body: JSON.stringify({
+        type: data.type,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        description: data.description,
+      }),
+    });
   }
+
+ if (!res.ok) {
+  const text = await res.text();
+  console.error("Error from server:", text);
+
+  if (res.status === 409) {
+    throw new Error("No available ambulances at the moment.");
+  }
+
+  throw new Error("Report creation failed");
+}
 
   return await res.json();
 }

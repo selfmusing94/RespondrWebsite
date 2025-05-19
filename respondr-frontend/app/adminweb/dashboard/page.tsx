@@ -383,7 +383,7 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <a
-                      href="/admin/verification-requests"
+                      href="/adminweb/verification-requests"
                       className="text-sm font-medium text-blue-600 hover:underline"
                     >
                       View all requests

@@ -11,12 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { MapPin, Send, X, ArrowLeft, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { AnimatedSection } from '@/components/animated-section';
 import { createReport } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context'; // or wherever your auth-context file is located
+import { useAuth } from '@/lib/auth-context';
 
 export default function ReportIncidentPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -25,6 +26,7 @@ export default function ReportIncidentPage() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showNoAmbulanceModal, setShowNoAmbulanceModal] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const { token } = useAuth();
@@ -35,7 +37,6 @@ export default function ReportIncidentPage() {
       return;
     }
 
-    // Get user's location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -106,14 +107,6 @@ export default function ReportIncidentPage() {
     setError('');
 
     try {
-      const formData = new FormData();
-      formData.append('type', 'SOS');
-      formData.append('latitude', location.lat.toString());
-      formData.append('longitude', location.lng.toString());
-      if (description) {
-        formData.append('description', description);
-      }
-      formData.append('photo', photoFile);
       const response = await createReport({
         type: 'SOS',
         latitude: location.lat,
@@ -128,13 +121,21 @@ export default function ReportIncidentPage() {
       });
       router.push('/report-success');
     } catch (err: any) {
-        const errorMessage = err.message || 'Failed to send report.';
-        setError(errorMessage);
-        toast({
-          variant: 'destructive',
-          title: 'Report Failed',
-          description: errorMessage,
-        });
+      let errorMessage = 'Failed to send report.';
+
+      if (err.status === 409) {
+        errorMessage = 'No ambulances are available at the moment.';
+        setShowNoAmbulanceModal(true);
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+      toast({
+        variant: 'destructive',
+        title: 'Report Failed',
+        description: errorMessage,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -159,6 +160,7 @@ export default function ReportIncidentPage() {
                 Upload a PNG photo and report an incident instantly
               </CardDescription>
             </CardHeader>
+
             <CardContent className="p-6 space-y-6">
               {error && (
                 <div className="text-red-700 bg-red-100 p-2 rounded mb-4">{error}</div>
@@ -226,6 +228,7 @@ export default function ReportIncidentPage() {
                 />
               </div>
             </CardContent>
+
             <CardFooter className="p-6 bg-gray-50">
               <Button
                 onClick={handleSubmit}
@@ -247,6 +250,25 @@ export default function ReportIncidentPage() {
           </Card>
         </AnimatedSection>
       </div>
+
+      {/* Modal */}
+      <Dialog open={showNoAmbulanceModal} onOpenChange={setShowNoAmbulanceModal}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">No Ambulance Found</DialogTitle>
+            <DialogDescription>
+              Sorry, no ambulances are available in your area right now.
+              <br />
+              <strong>Please call 108 directly</strong> for immediate assistance.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setShowNoAmbulanceModal(false)} className="bg-red-600 hover:bg-red-700 text-white">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
