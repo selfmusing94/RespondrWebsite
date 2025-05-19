@@ -11,42 +11,53 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between px-6 md:px-12 container mx-auto">
           <div className="flex items-center gap-2">
             <div className="relative h-8 w-8 overflow-hidden rounded-full bg-red-600">
               <div className="absolute inset-0 flex items-center justify-center text-white font-bold">R</div>
             </div>
-            <span className="text-xl font-bold text-red-600">Respondr</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#features" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
-              Features
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="#testimonials"
-              className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
-            >
-              Testimonials
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="outline" className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700">
-                Login
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button className="bg-red-600 text-white hover:bg-red-700">Sign Up</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <span className="text-xl font-bold text-red-600">Respondr</span>
+    </div>
+
+    {/* Navigation links */}
+    <nav className="hidden md:flex items-center gap-6">
+       <Link href="/" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        Home
+      </Link>
+       <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        About Us
+      </Link>
+       <Link href="/careers" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        Careers
+      </Link>
+      <Link href="#features" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        Features
+      </Link>
+      <Link href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        How It Works
+      </Link>
+      <Link href="#testimonials" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        Testimonials
+      </Link>
+       <Link href="/contact" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+        Contact Us
+      </Link>
+    </nav>
+
+    {/* Auth Buttons */}
+    <div className="flex items-center gap-4">
+      <Link href="/login">
+        <Button variant="outline" className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700">
+          Login
+        </Button>
+      </Link>
+      <Link href="/signup">
+        <Button className="bg-red-600 text-white hover:bg-red-700">Sign Up</Button>
+      </Link>
+    </div>
+  </div>
+</header>
+
 
       <main className="flex-1">
         <HeroSection />

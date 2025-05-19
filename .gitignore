@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Package managers
+bun.lock
+
+# IDE settings
+.idea/
+
+# Nested unnecessary modules
+**/node_modules/**/.github/
+**/node_modules/**/debug/node_modules/
+
+# OS-specific
+.DS_Store
+Thumbs.db
