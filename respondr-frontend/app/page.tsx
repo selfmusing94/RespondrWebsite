@@ -132,7 +132,7 @@ export default function Home() {
                   <div className="order-1 md:order-2 bg-white p-2 rounded-xl shadow-lg transform transition-all duration-500 hover:scale-105">
                     <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden">
                       <Image
-                        src="/placeholder.svg?height=400&width=600"
+                        src="/img1.png?height=400&width=600"
                         width={600}
                         height={400}
                         alt="SOS Button"
@@ -146,7 +146,7 @@ export default function Home() {
                   <div className="bg-white p-2 rounded-xl shadow-lg transform transition-all duration-500 hover:scale-105">
                     <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden">
                       <Image
-                        src="/placeholder.svg?height=400&width=600"
+                        src="/img2.png?height=400&width=600"
                         width={600}
                         height={400}
                         alt="AI Analysis"
@@ -184,7 +184,7 @@ export default function Home() {
                   <div className="order-1 md:order-2 bg-white p-2 rounded-xl shadow-lg transform transition-all duration-500 hover:scale-105">
                     <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden">
                       <Image
-                        src="/placeholder.svg?height=400&width=600"
+                        src="/img3.png?height=400&width=600"
                         width={600}
                         height={400}
                         alt="Real-time Tracking"

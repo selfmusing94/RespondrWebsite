@@ -46,7 +46,7 @@ export default function SignupPage() {
 
   const validatePhone = (phone: string) => {
     if (!phone) return "Phone number is required";
-    if (!/^[6-9]\d{9}$/.test(phone)) return "Phone number must start with 6, 7, 8, or 9 and be exactly 10 digits";
+    if (!/^[6-9]\d{9}$/.test(phone)) return "Enter a valid Phone number";
     return "";
   };
 
@@ -143,7 +143,7 @@ export default function SignupPage() {
                 </Label>
                 <Input
                   id="name"
-                  placeholder="John Doe"
+                  placeholder="Shankar Pai"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -158,7 +158,7 @@ export default function SignupPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="yourname@gmail.com or driver@gov.in"
+                  placeholder="govinda@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -173,7 +173,7 @@ export default function SignupPage() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="9876543210"
+                  placeholder="1234567890"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
