@@ -28,6 +28,14 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { login: authLogin } = useAuth();
 
+  const [fieldErrors, setFieldErrors] = useState({
+  name: "",
+  email: "",
+  phone: "",
+  password: "",
+  confirmPassword: "",
+});
+
   const validateName = (email: string) => {
     if (!email) return "Full name is required";
     return "";
@@ -74,12 +82,19 @@ export default function SignupPage() {
     const passwordError = validatePassword(password);
     const confirmPasswordError = validateConfirmPassword(confirmPassword);
 
-    if (nameError || emailError || phoneError || passwordError || confirmPasswordError) {
-      setError(nameError || emailError || phoneError || passwordError || confirmPasswordError);
-      return;
-    }
+   const errors = {
+  name: nameError,
+  email: emailError,
+  phone: phoneError,
+  password: passwordError,
+  confirmPassword: confirmPasswordError,
+};
 
-    setError("");
+setFieldErrors(errors);
+
+const hasError = Object.values(errors).some(Boolean);
+if (hasError) return;
+
     setIsLoading(true);
 
     try {
@@ -130,12 +145,6 @@ export default function SignupPage() {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <Alert variant="destructive" className="mb-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-gray-700">
@@ -145,10 +154,15 @@ export default function SignupPage() {
                   id="name"
                   placeholder="Shankar Pai"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setName(val);
+                    setFieldErrors((prev) => ({ ...prev, name: validateName(val) }));
+                  }}
                   required
                   className="h-11 transition-all duration-200 focus:ring-red-500 focus:border-red-500 bg-white"
                 />
+                {fieldErrors.name && <p className="text-sm text-red-600">{fieldErrors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -160,10 +174,15 @@ export default function SignupPage() {
                   type="email"
                   placeholder="govinda@gmail.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setEmail(val);
+                    setFieldErrors((prev) => ({ ...prev, email: validateEmail(val) }));
+                  }}
                   required
                   className="h-11 transition-all duration-200 focus:ring-red-500 focus:border-red-500 bg-white"
                 />
+                {fieldErrors.email && <p className="text-sm text-red-600">{fieldErrors.email}</p>}
               </div>
 
               <div className="space-y-2">
@@ -175,10 +194,15 @@ export default function SignupPage() {
                   type="tel"
                   placeholder="1234567890"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPhone(val);
+                    setFieldErrors((prev) => ({ ...prev, phone: validatePhone(val) }));
+                  }}
                   required
                   className="h-11 transition-all duration-200 focus:ring-red-500 focus:border-red-500 bg-white"
                 />
+                {fieldErrors.phone && <p className="text-sm text-red-600">{fieldErrors.phone}</p>}
               </div>
 
               <div className="space-y-2">
@@ -190,10 +214,15 @@ export default function SignupPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPassword(val);
+                      setFieldErrors((prev) => ({ ...prev, password: validatePassword(val) }));
+                    }}
                     required
                     className="h-11 transition-all duration-200 focus:ring-red-500 focus:border-red-500 pr-10 bg-white"
                   />
+                  {fieldErrors.password && <p className="text-sm text-red-600">{fieldErrors.password}</p>}
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
@@ -213,10 +242,15 @@ export default function SignupPage() {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setConfirmPassword(val);
+                      setFieldErrors((prev) => ({ ...prev, confirmPassword: validateConfirmPassword(val) }));
+                    }}
                     required
                     className="h-11 transition-all duration-200 focus:ring-red-500 focus:border-red-500 pr-10 bg-white"
                   />
+                  {fieldErrors.confirmPassword && <p className="text-sm text-red-600">{fieldErrors.confirmPassword}</p>}
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"

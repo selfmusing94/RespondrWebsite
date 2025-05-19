@@ -21,6 +21,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login: authLogin } = useAuth();
 
+  const [fieldErrors, setFieldErrors] = useState({
+  email: "",
+  password: "",
+  });
+
+
   // Get the router instance here
   const router = useRouter();
 
@@ -54,12 +60,15 @@ export default function LoginPage() {
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
+    setFieldErrors({
+      email: emailError,
+      password: passwordError,
+    });
+
     if (emailError || passwordError) {
-      setError(emailError || passwordError);
       return;
     }
 
-    setError("");
     setIsLoading(true);
 
     try {
@@ -137,10 +146,16 @@ export default function LoginPage() {
                   type="email"
                   placeholder="govinda@gmail.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                   onChange={(e) => {
+                      const val = e.target.value;
+                      setEmail(val);
+                      setFieldErrors((prev) => ({...prev, email: validateEmail(val), }));
+                    }}
                   required
                   className="h-11 transition-all duration-200 focus:ring-red-500 focus:border-red-500 bg-white"
                 />
+                {fieldErrors.email && (  <p className="text-sm text-red-600">{fieldErrors.email}</p> 
+                )}
               </div>
 
               <div className="space-y-2">
@@ -160,10 +175,16 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPassword(val);
+                      setFieldErrors((prev) => ({ ...prev, password: validatePassword(val), }));
+                    }}
                     required
                     className="h-11 transition-all duration-200 focus:ring-red-500 focus:border-red-500 pr-10 bg-white"
                   />
+                  {fieldErrors.password && (   <p className="text-sm text-red-600">{fieldErrors.password}</p>
+                  )}                  
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
