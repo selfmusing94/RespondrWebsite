@@ -251,7 +251,7 @@ export default function Home() {
                 <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-red-300 rounded-full opacity-50"></div>
                 <div className="relative bg-white p-3 rounded-xl shadow-xl">
                   <Image
-                    src="/placeholder.svg?height=400&width=400"
+                    src="/ready.png?height=400&width=400"
                     width={400}
                     height={400}
                     alt="Mobile app"

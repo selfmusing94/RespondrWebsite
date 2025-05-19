@@ -186,7 +186,7 @@ export default function DriverDashboardPage() {
             <SidebarTrigger />
             <div className="flex items-center gap-2">
               <div className="relative h-8 w-8 overflow-hidden rounded-full bg-red-600">
-                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">R</div>
+                <img src="/Respondr.webp" alt="Logo" />
               </div>
               <h1 className="text-xl font-bold text-red-600">Respondr</h1>
               <Badge className="ml-2 bg-red-600">Ambulance Driver</Badge>

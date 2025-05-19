@@ -7,23 +7,23 @@ const testimonials = [
   {
     quote:
       "Respondr has completely transformed how we handle emergency calls. The AI-powered analysis helps us prioritize critical cases and allocate resources more efficiently.",
-    name: "Dr. Sarah Johnson",
+    name: "Dr. Madhavan",
     title: "Emergency Department Director",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/director.jpg?height=100&width=100",
   },
   {
     quote:
       "When my father had a heart attack, Respondr helped me get an ambulance to our location in under 10 minutes. The real-time tracking feature gave us peace of mind during a terrifying situation.",
-    name: "Michael Chen",
+    name: "Ethan Hunt",
     title: "Respondr User",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/user.jpg?height=100&width=100",
   },
   {
     quote:
       "As an ambulance driver, this platform has made my job significantly easier. I get precise location data and can communicate directly with the reporting party.",
     name: "Raj Patel",
     title: "Emergency Medical Technician",
-    avatar: "/placeholder.svg?height=100&width=100",
+    avatar: "/technician.jpg?height=100&width=100",
   },
 ]
 

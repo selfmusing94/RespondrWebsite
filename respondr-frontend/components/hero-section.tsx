@@ -76,19 +76,8 @@ export function HeroSection() {
             <div
               className={`flex items-center space-x-4 transition-all duration-1000 delay-400 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-            >
-              <div className="flex -space-x-2">
-                <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 border-2 border-white">
-                  <span className="text-xs font-medium text-gray-900">JD</span>
-                </div>
-                <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 border-2 border-white">
-                  <span className="text-xs font-medium text-gray-900">SK</span>
-                </div>
-                <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 border-2 border-white">
-                  <span className="text-xs font-medium text-gray-900">RK</span>
-                </div>
-              </div>
+              }`}>
+            
               <div className="text-sm text-gray-600">
                 Trusted by <span className="font-medium text-gray-900">500+</span> emergency responders
               </div>
@@ -108,7 +97,7 @@ export function HeroSection() {
               <div className="relative z-10 bg-white p-2 rounded-2xl shadow-2xl">
                 <div className="aspect-[4/3] overflow-hidden rounded-xl">
                   <Image
-                    src="/placeholder.svg?height=600&width=800"
+                    src="/accident2.jpg?height=600&width=800"
                     width={800}
                     height={600}
                     alt="Emergency response"

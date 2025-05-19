@@ -111,7 +111,7 @@ export default function SignupPage() {
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <div className="relative h-12 w-12 overflow-hidden rounded-full bg-red-600 shadow-md">
-              <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-2xl">R</div>
+                <img src="/Respondr.webp" alt="Logo" />
             </div>
           </Link>
         </div>
