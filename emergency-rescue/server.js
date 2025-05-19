@@ -4,6 +4,7 @@ const cors = require('cors');
 const mysql = require('mysql2');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const fileUpload = require('express-fileupload');
 
 
 const app = express();
@@ -31,6 +32,8 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/driver', require('./routes/driver'));
 app.use('/api/reports', require('./routes/report'));
 app.use('/api/user', userRoutes);
+app.use(fileUpload());
+
 
 
 

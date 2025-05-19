@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedToken) {
       try {
         const payload = JSON.parse(atob(storedToken.split(".")[1]));
+        console.log("Decoded JWT payload:", payload); // ✅ LOG THIS
         setUser({ userId: payload.user_id, role: payload.role });
         setToken(storedToken);
         setIsAuthenticated(true);
@@ -41,14 +42,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (token: string, userId: number, role: string) => {
-    localStorage.setItem("token", token);
-    setAuthToken(token);
-    setUser({ userId, role });
-    setToken(token);
-    setIsAuthenticated(true);
-    toast.success("Logged in successfully!");
-    router.push("/dashboard");
-  };
+  localStorage.setItem("token", token);
+  setAuthToken(token);
+  setUser({ userId, role });
+  setToken(token);
+  setIsAuthenticated(true);
+  toast.success("Logged in successfully!");
+
+  console.log("Logged in with role:", role); // Debug log
+
+  // Redirect user based on their role
+  switch (role) {
+    case "Admin":
+      router.push("/admin/dashboard");
+      break;
+    case "Driver":
+      router.push("/driver/dashboard");
+      break;
+    default:
+      router.push("/dashboard"); // public
+  }
+};
 
   const logout = () => {
     localStorage.removeItem("token");

@@ -106,26 +106,35 @@ export default function ReportIncidentPage() {
     setError('');
 
     try {
-      const data: any = {
+      const formData = new FormData();
+      formData.append('type', 'SOS');
+      formData.append('latitude', location.lat.toString());
+      formData.append('longitude', location.lng.toString());
+      if (description) {
+        formData.append('description', description);
+      }
+      formData.append('photo', photoFile);
+      const response = await createReport({
         type: 'SOS',
         latitude: location.lat,
         longitude: location.lng,
-        description: description || undefined,
+        description,
         photo: photoFile,
-      };
-      const response = await createReport(data);
+      });
+
       toast({
         title: 'Report Sent',
         description: `Report ID: ${response.reportId}. Help is on the way.`,
       });
       router.push('/report-success');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to send report.');
-      toast({
-        variant: 'destructive',
-        title: 'Report Failed',
-        description: err.response?.data?.error || 'Failed to send report.',
-      });
+        const errorMessage = err.message || 'Failed to send report.';
+        setError(errorMessage);
+        toast({
+          variant: 'destructive',
+          title: 'Report Failed',
+          description: errorMessage,
+        });
     } finally {
       setIsSubmitting(false);
     }

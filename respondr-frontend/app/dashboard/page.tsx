@@ -1,257 +1,162 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, MapPin } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { MapView } from '@/components/map-view';
-import { SOSButton } from '@/components/sos-button';
-import { useAuth } from '@/lib/auth-context';
-import { getPendingReports, handleAssignment } from '@/lib/api';
-import {
-  connectSocket,
-  onNewReport,
-  sendLocationUpdate,
-  disconnectSocket,
-} from '@/lib/socket';
-import { PendingReport, ReportNotification } from '@/lib/types';
-import { AnimatedSection } from '@/components/animated-section';
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { MapPin, Camera, AlertTriangle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SOSButton } from "@/components/sos-button"
+import { useToast } from "@/hooks/use-toast"
+import { MapView } from "@/components/map-view"
 
 export default function DashboardPage() {
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [reports, setReports] = useState<PendingReport[]>([]);
-  const [notifications, setNotifications] = useState<ReportNotification[]>([]);
-
-  const router = useRouter();
-  const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
-
-    setShowWelcome(true);
-
-    const timer = setTimeout(() => setShowWelcome(false), 5000);
-
+    // Get user's location when the dashboard loads
     if (navigator.geolocation) {
-      setIsLocating(true);
+      setIsLocating(true)
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          setLocation({ lat: latitude, lng: longitude });
-          setIsLocating(false);
-
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+          setIsLocating(false)
           toast({
-            title: 'Location Detected',
-            description: 'Your current location has been successfully detected.',
-          });
-
-          if (user.role === 'Responder') {
-            sendLocationUpdate(user.userId, latitude, longitude);
-          }
+            title: "Location detected",
+            description: "Your current location has been successfully detected.",
+          })
         },
         (error) => {
-          console.error('Geolocation error:', error);
-          setIsLocating(false);
+          console.error("Error getting location:", error)
+          setIsLocating(false)
           toast({
-            variant: 'destructive',
-            title: 'Location Error',
-            description: 'Unable to detect your location. Please enable location services.',
-          });
+            variant: "destructive",
+            title: "Location error",
+            description: "Unable to get your location. Please enable location services.",
+          })
         },
-        { enableHighAccuracy: true }
-      );
-
-      if (user.role === 'Responder') {
-        const watchId = navigator.geolocation.watchPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setLocation({ lat: latitude, lng: longitude });
-            sendLocationUpdate(user.userId, latitude, longitude);
-          },
-          (error) => console.error('Watch position error:', error),
-          { enableHighAccuracy: true }
-        );
-        return () => navigator.geolocation.clearWatch(watchId);
-      }
+      )
     }
 
-    if (user.role === 'Responder') {
-      const socket = connectSocket(localStorage.getItem('token')!);
+    // Hide welcome message after 5 seconds
+    const timer = setTimeout(() => {
+      setShowWelcome(false)
+    }, 5000)
 
-      onNewReport((report) => {
-        setNotifications((prev) => [...prev, report]);
-        toast({
-          title: `New ${report.type} Report`,
-          description: `Location: (${report.latitude.toFixed(6)}, ${report.longitude.toFixed(6)})`,
-        });
-      });
+    return () => clearTimeout(timer)
+  }, [toast])
 
-      const fetchReports = async () => {
-        try {
-          const data = await getPendingReports();
-          setReports(data);
-        } catch (err: any) {
-          toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: err.response?.data?.error || 'Failed to fetch reports.',
-          });
-        }
-      };
-      fetchReports();
+  const handleSOS = () => {
+    router.push("/report-incident")
+  }
 
-      return () => disconnectSocket();
-    }
-
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, user, toast]);
-
-  const handleSOS = () => router.push('/report-incident');
-  const handleBookAmbulance = () => router.push('/book-ambulance');
-
-  const handleAssignmentAction = async (assignmentId: number, action: 'accept' | 'cancel') => {
-    try {
-      await handleAssignment(assignmentId, { action });
-      setReports((prev) => prev.filter((r) => r.report_id !== assignmentId));
-      toast({
-        title: `Assignment ${action.charAt(0).toUpperCase() + action.slice(1)}ed`,
-        description: `Report ID: ${assignmentId}`,
-      });
-    } catch (err: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err.response?.data?.error || 'Action failed.',
-      });
-    }
-  };
-
-  if (!user) return null;
+  const handleBookAmbulance = () => {
+    router.push("/book-ambulance")
+  }
 
   return (
-    <main className="p-6 max-w-7xl mx-auto">
-      <AnimatedSection>
-        {showWelcome && (
-          <Card className="mb-6 bg-white rounded-lg border border-gray-100 shadow-sm p-4 animate-fade-in-down">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-gray-50">
+        <AppSidebar />
+        <div className="flex-1">
+          <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-white/80 backdrop-blur-md px-6">
+            <SidebarTrigger />
+            <div className="flex items-center gap-2">
+              <div className="relative h-8 w-8 overflow-hidden rounded-full bg-red-600">
+                <div className="absolute inset-0 flex items-center justify-center text-white font-bold">R</div>
               </div>
-              <div>
-                <h3 className="font-medium text-gray-900">Welcome to Respondr</h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  {user.role === 'Public'
-                    ? 'Report emergencies or book ambulances with ease.'
-                    : 'Monitor and respond to emergency reports in real-time.'}
-                </p>
-              </div>
+              <h1 className="text-xl font-bold text-red-600">Respondr</h1>
             </div>
-          </Card>
-        )}
+            <div className="ml-auto flex items-center gap-4">
+              {location && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <MapPin className="mr-1 h-4 w-4 text-red-600" />
+                  <span className="hidden md:inline">
+                    {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </header>
 
-        {user.role === 'Public' ? (
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
-            <Card className="lg:col-span-3 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border-0 h-[500px]">
-              <CardContent className="p-0 h-full">
-                <MapView location={location} isLocating={isLocating} />
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <SOSButton onClick={handleSOS} />
-
-              <Card className="shadow-md hover:shadow-lg transition-all duration-300 border-0">
-                <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
-                  <AlertTriangle className="h-12 w-12 text-red-600" />
-                  <div>
-                    <h3 className="font-medium text-lg">Report Incident</h3>
-                    <p className="text-gray-600 text-sm">Need help? Quickly report emergencies here.</p>
+          <main className="flex-1 p-6">
+            {showWelcome && (
+              <div className="mb-6 bg-white rounded-lg border border-gray-100 shadow-sm p-4 animate-fade-in-down">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="h-5 w-5 text-red-600" />
                   </div>
-                  <Button onClick={handleSOS} variant="destructive" size="lg">
-                    Report Now
-                  </Button>
+                  <div>
+                    <h3 className="font-medium text-gray-900">Welcome to Respondr</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      In case of emergency, press the SOS button to immediately report an incident.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+              <Card className="lg:col-span-3 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border-0 h-[500px]">
+                <CardContent className="p-0 h-full">
+                  <MapView location={location} isLocating={isLocating} />
                 </CardContent>
               </Card>
 
-              <Card className="shadow-md hover:shadow-lg transition-all duration-300 border-0">
-                <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
-                  <AlertTriangle className="h-12 w-12 text-red-600" />
-                  <div>
-                    <h3 className="font-medium text-lg">Book Ambulance</h3>
-                    <p className="text-gray-600 text-sm">Request ambulance service fast and easy.</p>
-                  </div>
-                  <Button onClick={handleBookAmbulance} variant="outline" size="lg">
-                    Book Ambulance
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <Card className="overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border-0 h-[500px]">
-              <CardContent className="p-0 h-full">
-                <MapView location={location} isLocating={isLocating} />
-              </CardContent>
-            </Card>
+              <div className="space-y-6">
+                <SOSButton onClick={handleSOS} />
 
-            {reports.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pending Assignments</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {reports.map((report) => (
-                    <div
-                      key={report.report_id}
-                      className="mb-3 flex justify-between items-center p-3 border rounded-md"
-                    >
+                <Card className="shadow-md hover:shadow-lg transition-all duration-300 border-0">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <Camera className="h-12 w-12 text-red-600" />
                       <div>
-                        <p className="font-semibold">{report.type}</p>
-                        <p className="text-sm text-gray-600">
-                          Location: {report.latitude.toFixed(6)}, {report.longitude.toFixed(6)}
+                        <h3 className="font-medium text-lg">Report Incident</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Take a photo and report an incident to emergency services
                         </p>
                       </div>
-                      <div className="space-x-2">
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleAssignmentAction(report.report_id, 'cancel')}
-                        >
-                          Cancel
-                        </Button>
-                        <Button size="sm" onClick={() => handleAssignmentAction(report.report_id, 'accept')}>
-                          Accept
-                        </Button>
-                      </div>
+                      <Button
+                        onClick={() => router.push("/report-incident")}
+                        className="bg-red-600 hover:bg-red-700 transition-all duration-300 hover:scale-105"
+                      >
+                        Report Now
+                      </Button>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
 
-            {notifications.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notifications</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {notifications.map((note, i) => (
-                    <p key={i} className="text-sm mb-1">
-                      New {note.type} report at {note.latitude.toFixed(6)}, {note.longitude.toFixed(6)}
-                    </p>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-      </AnimatedSection>
-    </main>
-  );
+                <Card className="shadow-md hover:shadow-lg transition-all duration-300 border-0">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <AlertTriangle className="h-12 w-12 text-red-600" />
+                      <div>
+                        <h3 className="font-medium text-lg">Book Ambulance</h3>
+                        <p className="text-sm text-gray-600 mt-1">Request an ambulance to your current location</p>
+                      </div>
+                      <Button
+                        onClick={handleBookAmbulance}
+                        variant="outline"
+                        className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-300 hover:scale-105"
+                      >
+                        Book Now
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  )
 }

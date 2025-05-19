@@ -23,9 +23,7 @@ interface AuthResponse {
 
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  
 });
 
 export function setAuthToken(token: string | null) {
@@ -60,8 +58,9 @@ export const handleAssignment = async (assignmentId: number, action: { action: '
   return response.data;
 };
 
+// lib/api.ts
 export async function createReport(data: {
-  type: string;
+  type: 'SOS' | 'Booking';
   latitude: number;
   longitude: number;
   description?: string;
@@ -69,24 +68,28 @@ export async function createReport(data: {
 }) {
   const formData = new FormData();
   formData.append('type', data.type);
-  formData.append('latitude', data.latitude.toString());
-  formData.append('longitude', data.longitude.toString());
-  if (data.description) formData.append('description', data.description);
+  formData.append('latitude', String(data.latitude));
+  formData.append('longitude', String(data.longitude));
+  if (data.description) {
+    formData.append('description', data.description);
+  }
   formData.append('photo', data.photo);
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/report/create`, {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')!}`,
+    },
     body: formData,
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData?.error || 'Failed to create report');
+  if (!res.ok) {
+    const errData = await res.json();
+    throw new Error(errData.error || 'Failed to send report');
   }
 
-  return response.json();
+  return await res.json();
 }
-
 
 
 export default api;

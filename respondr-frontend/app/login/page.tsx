@@ -65,13 +65,12 @@ export default function LoginPage() {
     try {
       console.log("Login form submitted:", { email, password });
       const response = await login({ email, password });
-      console.log("Login response:", response);
+      console.log("Login response:", response); // ← what is here?
 
       // Save auth info in context
       authLogin(response.token, response.userId, response.role);
+      // DO NOT manually call router.push here — your auth-context already handles it
 
-      // Redirect after successful login - e.g., to dashboard
-      router.push("/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
       setError(
