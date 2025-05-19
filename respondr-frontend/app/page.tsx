@@ -11,10 +11,10 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
-        <div className="flex h-16 items-center justify-between px-6 md:px-12 container mx-auto">
+        <div className="flex h-16 items-center justify-between px-3 md:px-6 container mx-auto">
           <div className="flex items-center gap-2">
             <div className="relative h-8 w-8 overflow-hidden rounded-full bg-red-600">
-              <div className="absolute inset-0 flex items-center justify-center text-white font-bold">R</div>
+                <img src="/Respondr.webp" alt="Logo" />
             </div>
       <span className="text-xl font-bold text-red-600">Respondr</span>
     </div>
